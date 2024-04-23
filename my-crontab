@@ -1,1 +1,1 @@
-*/50 * * * * jeanlandimcelero /home/jeanlandimcelero/Scripts/gcloud_auth_login.sh
+*/50 * * * * DISPLAY=:0 jeanlandimcelero /home/jeanlandimcelero/Scripts/gcloud_auth_login.sh
