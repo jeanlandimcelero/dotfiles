@@ -1,0 +1,50 @@
+version: '3.7'
+
+services:
+  celerov2-models-nosql:
+    build: 
+       context: ./dockerfiles/celerov2-models-nosql
+       dockerfile: ./Dockerfile
+       args:
+          GITHUB_TOKEN: ${GITHUB_TOKEN}
+    command: poetry run manage.py 0.0.0.0:8086
+    ports:
+      - "8086:8086"
+    depends_on:
+      - redis
+      - mongo
+
+  celerov2-models-sql:
+    build: 
+       context: ./dockerfiles/celerov2-models-sql
+       dockerfile: ./Dockerfile
+       args:
+          GITHUB_TOKEN: ${GITHUB_TOKEN}
+    command: poetry run manage.py 0.0.0.0:8087
+    ports:
+      - "8087:8087"
+    depends_on:
+      - redis
+      - mongo
+
+  celerov2-models-watcher:
+    build: 
+       context: ./dockerfiles/celerov2-models-watcher
+       dockerfile: ./Dockerfile
+       args:
+          GITHUB_TOKEN: ${GITHUB_TOKEN}
+    command: poetry run manage.py watch bfm_data_lake_queue
+    depends_on:
+      - redis
+      - mongo
+
+  redis:
+    image: redis
+    ports:
+      - "6379:6379"
+
+  mongo:
+    image: mongo
+    ports:
+      - "27017:27017"
+
