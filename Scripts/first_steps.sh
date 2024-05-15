@@ -30,34 +30,28 @@ install_packages() {
 
 # Instalar Google Chrome
 install_chrome() {
-    if ! is_installed google-chrome-stable; then
         echo "# Baixando e instalando Google Chrome..."
         run_sudo wget -q https://dl.google.com/linux/direct/google-chrome-stable_current_amd64.deb
         run_sudo dpkg -i google-chrome-stable_current_amd64.deb || run_sudo apt-get install -f -y
         install_packages libnss3
-    fi
     echo "20" # Progresso 20%
 }
 
 # Instalar Slack
 install_slack() {
-    if ! snap list | grep -q slack; then
         echo "# Instalando Slack..."
         run_sudo snap install slack
-    fi
     echo "30" # Progresso 30%
 }
 
 # Instalar Visual Studio Code
 install_vscode() {
-    if ! is_installed code; then
         echo "# Adicionando repositório do VSCode..."
         run_sudo sh -c 'echo "deb [arch=amd64,arm64,armhf signed-by=/etc/apt/keyrings/packages.microsoft.gpg] https://packages.microsoft.com/repos/code stable main" > /etc/apt/sources.list.d/vscode.list'
         wget -qO- https://packages.microsoft.com/keys/microsoft.asc | gpg --dearmor > packages.microsoft.gpg
         run_sudo install -D -o root -g root -m 644 packages.microsoft.gpg /etc/apt/keyrings/packages.microsoft.gpg
         update_packages
         install_packages code
-    fi
     echo "40" # Progresso 40%
 }
 
@@ -89,24 +83,20 @@ install_gcloud() {
 
 # Instalar kubectl
 install_kubectl() {
-    if ! is_installed kubectl; then
-        echo "# Instalando kubectl..."
-        run_sudo curl -fsSL https://pkgs.k8s.io/core:/stable:/v1.30/deb/Release.key | run_sudo gpg --dearmor -o /etc/apt/keyrings/kubernetes-apt-keyring.gpg
-        run_sudo chmod 644 /etc/apt/keyrings/kubernetes-apt-keyring.gpg
-        echo "deb [signed-by=/etc/apt/keyrings/kubernetes-apt-keyring.gpg] https://pkgs.k8s.io/core:/stable:/v1.30/deb/ /" | run_sudo tee /etc/apt/sources.list.d/kubernetes.list
-        run_sudo chmod 644 /etc/apt/sources.list.d/kubernetes.list
-        update_packages
-        install_packages kubectl
-    fi
+    echo "# Instalando kubectl..."
+    run_sudo curl -fsSL https://pkgs.k8s.io/core:/stable:/v1.30/deb/Release.key | run_sudo gpg --dearmor -o /etc/apt/keyrings/kubernetes-apt-keyring.gpg
+    run_sudo chmod 644 /etc/apt/keyrings/kubernetes-apt-keyring.gpg
+    echo "deb [signed-by=/etc/apt/keyrings/kubernetes-apt-keyring.gpg] https://pkgs.k8s.io/core:/stable:/v1.30/deb/ /" | run_sudo tee /etc/apt/sources.list.d/kubernetes.list
+    run_sudo chmod 644 /etc/apt/sources.list.d/kubernetes.list
+    update_packages
+    install_packages kubectl
     echo "80" # Progresso 80%
 }
 
 # Instalar Docker
 install_docker() {
-    if ! is_installed docker-ce; then
         echo "# Instalando Docker..."
         install_packages docker-ce docker-ce-cli containerd.io
-    fi
     echo "90" # Progresso 90%
 }
 
