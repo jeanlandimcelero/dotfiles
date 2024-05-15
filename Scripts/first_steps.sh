@@ -47,8 +47,6 @@ install_chrome() {
         run_sudo wget -q https://dl.google.com/linux/direct/google-chrome-stable_current_amd64.deb
         run_sudo dpkg -i google-chrome-stable_current_amd64.deb || run_sudo apt-get install -f -y
         install_packages libnss3
-    else
-        echo "# Google Chrome já está instalado."
     fi
     echo "20" # Progresso 20%
 }
@@ -58,8 +56,6 @@ install_slack() {
     if ! snap list | grep -q slack; then
         echo "# Instalando Slack..."
         run_sudo snap install slack
-    else
-        echo "# Slack já está instalado."
     fi
     echo "30" # Progresso 30%
 }
@@ -73,8 +69,6 @@ install_vscode() {
         run_sudo install -D -o root -g root -m 644 packages.microsoft.gpg /etc/apt/keyrings/packages.microsoft.gpg
         update_packages
         install_packages code
-    else
-        echo "# Visual Studio Code já está instalado."
     fi
     echo "40" # Progresso 40%
 }
@@ -102,8 +96,6 @@ install_gcloud() {
         echo "deb [signed-by=/usr/share/keyrings/cloud.google.gpg] https://packages.cloud.google.com/apt cloud-sdk main" | run_sudo tee -a /etc/apt/sources.list.d/google-cloud-sdk.list
         update_packages
         install_packages google-cloud-cli
-    else
-        echo "# Google Cloud CLI já está instalado."
     fi
     echo "70" # Progresso 70%
 }
@@ -118,8 +110,6 @@ install_kubectl() {
         run_sudo chmod 644 /etc/apt/sources.list.d/kubernetes.list
         update_packages
         install_packages kubectl
-    else
-        echo "# kubectl já está instalado."
     fi
     echo "80" # Progresso 80%
 }
@@ -129,8 +119,6 @@ install_docker() {
     if ! is_installed docker-ce; then
         echo "# Instalando Docker..."
         install_packages docker-ce docker-ce-cli containerd.io
-    else
-        echo "# Docker já está instalado."
     fi
     echo "90" # Progresso 90%
 }
@@ -142,14 +130,18 @@ install_git() {
     echo "95" # Progresso 95%
 }
 
+# Instalar curl
+install_git() {
+    echo "# Instalando curl..."
+    install_packages curl
+}
+
 # Gerar chave SSH
 generate_ssh_key() {
     local email="$1"
     if [ ! -f ~/.ssh/id_rsa ]; then
         echo "# Gerando chave SSH para $email..."
         run_sudo ssh-keygen -t rsa -b 4096 -C "$email" -N "" -f ~/.ssh/id_rsa
-    else
-        echo "# Chave SSH já existe."
     fi
     echo "100" # Progresso 100%
 }
@@ -187,6 +179,9 @@ fi
 (
 # Executar as funções de instalação com base na seleção do usuário
 update_packages
+
+# Instala o curl
+install_curl
 
 IFS=":" read -ra selected_packages <<< "$packages"
 for package in "${selected_packages[@]}"; do
