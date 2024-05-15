@@ -131,7 +131,7 @@ install_git() {
 }
 
 # Instalar curl
-install_git() {
+install_curl() {
     echo "# Instalando curl..."
     install_packages curl
 }
@@ -148,6 +148,8 @@ generate_ssh_key() {
 
 # Solicitar a senha sudo
 get_sudo_password
+#
+install_curl
 
 # Mostrar a caixa de diálogo de seleção
 packages=$(zenity --list --title="Selecione os pacotes para instalar" --text="Escolha os pacotes que deseja instalar:" --checklist --column="Selecionar" --column="Pacote" \
