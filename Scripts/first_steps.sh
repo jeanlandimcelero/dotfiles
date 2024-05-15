@@ -16,11 +16,6 @@ run_sudo() {
     echo "$PASSWORD" | sudo -S "$@"
 }
 
-# Função para verificar se um pacote está instalado
-is_installed() {
-    dpkg -l "$1" &> /dev/null
-}
-
 # Função para atualizar lista de pacotes
 update_packages() {
     echo "# Atualizando lista de pacotes..."
@@ -30,14 +25,7 @@ update_packages() {
 
 # Função para instalar pacotes via apt-get
 install_packages() {
-    for package in "$@"; do
-        if ! is_installed "$package"; then
-            echo "# Instalando pacote: $package"
-            run_sudo apt-get install -y "$package"
-        else
-            echo "# Pacote $package já está instalado."
-        fi
-    done
+    run_sudo apt-get install -y "$@" --no-upgrade
 }
 
 # Instalar Google Chrome
@@ -90,13 +78,12 @@ install_transport_https() {
 
 # Instalar Google Cloud CLI
 install_gcloud() {
-    if ! is_installed google-cloud-sdk; then
         echo "# Instalando Google Cloud CLI..."
         curl -s https://packages.cloud.google.com/apt/doc/apt-key.gpg | run_sudo gpg --dearmor -o /usr/share/keyrings/cloud.google.gpg
         echo "deb [signed-by=/usr/share/keyrings/cloud.google.gpg] https://packages.cloud.google.com/apt cloud-sdk main" | run_sudo tee -a /etc/apt/sources.list.d/google-cloud-sdk.list
         update_packages
         install_packages google-cloud-cli
-    fi
+
     echo "70" # Progresso 70%
 }
 
@@ -148,8 +135,6 @@ generate_ssh_key() {
 
 # Solicitar a senha sudo
 get_sudo_password
-#
-install_curl
 
 # Mostrar a caixa de diálogo de seleção
 packages=$(zenity --list --title="Selecione os pacotes para instalar" --text="Escolha os pacotes que deseja instalar:" --checklist --column="Selecionar" --column="Pacote" \
