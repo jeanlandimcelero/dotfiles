@@ -104,7 +104,7 @@ install_gcloud() {
 install_kubectl() {
     if ! is_installed kubectl; then
         echo "# Instalando kubectl..."
-        curl -fsSL https://pkgs.k8s.io/core:/stable:/v1.30/deb/Release.key | run_sudo gpg --dearmor -o /etc/apt/keyrings/kubernetes-apt-keyring.gpg
+        run_sudo curl -fsSL https://pkgs.k8s.io/core:/stable:/v1.30/deb/Release.key | run_sudo gpg --dearmor -o /etc/apt/keyrings/kubernetes-apt-keyring.gpg
         run_sudo chmod 644 /etc/apt/keyrings/kubernetes-apt-keyring.gpg
         echo "deb [signed-by=/etc/apt/keyrings/kubernetes-apt-keyring.gpg] https://pkgs.k8s.io/core:/stable:/v1.30/deb/ /" | run_sudo tee /etc/apt/sources.list.d/kubernetes.list
         run_sudo chmod 644 /etc/apt/sources.list.d/kubernetes.list
