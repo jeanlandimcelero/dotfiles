@@ -16,6 +16,11 @@ run_sudo() {
     echo "$PASSWORD" | sudo -S "$@"
 }
 
+# Função para verificar se um pacote está instalado
+is_installed() {
+    dpkg -l "$1" &> /dev/null
+}
+
 # Função para atualizar lista de pacotes
 update_packages() {
     echo "# Atualizando lista de pacotes..."
@@ -25,35 +30,52 @@ update_packages() {
 
 # Função para instalar pacotes via apt-get
 install_packages() {
-    echo "# Instalando pacotes: $*"
-    run_sudo apt-get install -y "$@"
+    for package in "$@"; do
+        if ! is_installed "$package"; then
+            echo "# Instalando pacote: $package"
+            run_sudo apt-get install -y "$package"
+        else
+            echo "# Pacote $package já está instalado."
+        fi
+    done
 }
 
 # Instalar Google Chrome
 install_chrome() {
-    echo "# Baixando e instalando Google Chrome..."
-    run_sudo wget -q https://dl.google.com/linux/direct/google-chrome-stable_current_amd64.deb
-    run_sudo dpkg -i google-chrome-stable_current_amd64.deb || run_sudo apt-get install -f -y
-    install_packages libnss3
-    run_sudo rm ./google-chrome-stable_current_amd64.deb
+    if ! is_installed google-chrome-stable; then
+        echo "# Baixando e instalando Google Chrome..."
+        run_sudo wget -q https://dl.google.com/linux/direct/google-chrome-stable_current_amd64.deb
+        run_sudo dpkg -i google-chrome-stable_current_amd64.deb || run_sudo apt-get install -f -y
+        install_packages libnss3
+    else
+        echo "# Google Chrome já está instalado."
+    fi
     echo "20" # Progresso 20%
 }
 
 # Instalar Slack
 install_slack() {
-    echo "# Instalando Slack..."
-    run_sudo snap install slack
+    if ! snap list | grep -q slack; then
+        echo "# Instalando Slack..."
+        run_sudo snap install slack
+    else
+        echo "# Slack já está instalado."
+    fi
     echo "30" # Progresso 30%
 }
 
 # Instalar Visual Studio Code
 install_vscode() {
-    echo "# Adicionando repositório do VSCode..."
-    run_sudo sh -c 'echo "deb [arch=amd64,arm64,armhf signed-by=/etc/apt/keyrings/packages.microsoft.gpg] https://packages.microsoft.com/repos/code stable main" > /etc/apt/sources.list.d/vscode.list'
-    wget -qO- https://packages.microsoft.com/keys/microsoft.asc | gpg --dearmor > packages.microsoft.gpg
-    run_sudo install -D -o root -g root -m 644 packages.microsoft.gpg /etc/apt/keyrings/packages.microsoft.gpg
-    update_packages
-    install_packages code
+    if ! is_installed code; then
+        echo "# Adicionando repositório do VSCode..."
+        run_sudo sh -c 'echo "deb [arch=amd64,arm64,armhf signed-by=/etc/apt/keyrings/packages.microsoft.gpg] https://packages.microsoft.com/repos/code stable main" > /etc/apt/sources.list.d/vscode.list'
+        wget -qO- https://packages.microsoft.com/keys/microsoft.asc | gpg --dearmor > packages.microsoft.gpg
+        run_sudo install -D -o root -g root -m 644 packages.microsoft.gpg /etc/apt/keyrings/packages.microsoft.gpg
+        update_packages
+        install_packages code
+    else
+        echo "# Visual Studio Code já está instalado."
+    fi
     echo "40" # Progresso 40%
 }
 
@@ -74,30 +96,42 @@ install_transport_https() {
 
 # Instalar Google Cloud CLI
 install_gcloud() {
-    echo "# Instalando Google Cloud CLI..."
-    curl -s https://packages.cloud.google.com/apt/doc/apt-key.gpg | run_sudo gpg --dearmor -o /usr/share/keyrings/cloud.google.gpg
-    echo "deb [signed-by=/usr/share/keyrings/cloud.google.gpg] https://packages.cloud.google.com/apt cloud-sdk main" | run_sudo tee -a /etc/apt/sources.list.d/google-cloud-sdk.list
-    update_packages
-    install_packages google-cloud-cli
+    if ! is_installed google-cloud-sdk; then
+        echo "# Instalando Google Cloud CLI..."
+        curl -s https://packages.cloud.google.com/apt/doc/apt-key.gpg | run_sudo gpg --dearmor -o /usr/share/keyrings/cloud.google.gpg
+        echo "deb [signed-by=/usr/share/keyrings/cloud.google.gpg] https://packages.cloud.google.com/apt cloud-sdk main" | run_sudo tee -a /etc/apt/sources.list.d/google-cloud-sdk.list
+        update_packages
+        install_packages google-cloud-cli
+    else
+        echo "# Google Cloud CLI já está instalado."
+    fi
     echo "70" # Progresso 70%
 }
 
 # Instalar kubectl
 install_kubectl() {
-    echo "# Instalando kubectl..."
-    curl -fsSL https://pkgs.k8s.io/core:/stable:/v1.30/deb/Release.key | run_sudo gpg --dearmor -o /etc/apt/keyrings/kubernetes-apt-keyring.gpg
-    run_sudo chmod 644 /etc/apt/keyrings/kubernetes-apt-keyring.gpg
-    echo "deb [signed-by=/etc/apt/keyrings/kubernetes-apt-keyring.gpg] https://pkgs.k8s.io/core:/stable:/v1.30/deb/ /" | run_sudo tee /etc/apt/sources.list.d/kubernetes.list
-    run_sudo chmod 644 /etc/apt/sources.list.d/kubernetes.list
-    update_packages
-    install_packages kubectl
+    if ! is_installed kubectl; then
+        echo "# Instalando kubectl..."
+        curl -fsSL https://pkgs.k8s.io/core:/stable:/v1.30/deb/Release.key | run_sudo gpg --dearmor -o /etc/apt/keyrings/kubernetes-apt-keyring.gpg
+        run_sudo chmod 644 /etc/apt/keyrings/kubernetes-apt-keyring.gpg
+        echo "deb [signed-by=/etc/apt/keyrings/kubernetes-apt-keyring.gpg] https://pkgs.k8s.io/core:/stable:/v1.30/deb/ /" | run_sudo tee /etc/apt/sources.list.d/kubernetes.list
+        run_sudo chmod 644 /etc/apt/sources.list.d/kubernetes.list
+        update_packages
+        install_packages kubectl
+    else
+        echo "# kubectl já está instalado."
+    fi
     echo "80" # Progresso 80%
 }
 
 # Instalar Docker
 install_docker() {
-    echo "# Instalando Docker..."
-    install_packages docker-ce docker-ce-cli containerd.io
+    if ! is_installed docker-ce; then
+        echo "# Instalando Docker..."
+        install_packages docker-ce docker-ce-cli containerd.io
+    else
+        echo "# Docker já está instalado."
+    fi
     echo "90" # Progresso 90%
 }
 
@@ -111,21 +145,17 @@ install_git() {
 # Gerar chave SSH
 generate_ssh_key() {
     local email="$1"
-    echo "# Gerando chave SSH para $email..."
-    run_sudo ssh-keygen -t rsa -b 4096 -C "$email" -N "" -f ~/.ssh/id_rsa
+    if [ ! -f ~/.ssh/id_rsa ]; then
+        echo "# Gerando chave SSH para $email..."
+        run_sudo ssh-keygen -t rsa -b 4096 -C "$email" -N "" -f ~/.ssh/id_rsa
+    else
+        echo "# Chave SSH já existe."
+    fi
     echo "100" # Progresso 100%
-}
-
-# Install zenity
-install_zenity(){
-    install_packages zenity
 }
 
 # Solicitar a senha sudo
 get_sudo_password
-
-# Install zenity
-install_zenity
 
 # Mostrar a caixa de diálogo de seleção
 packages=$(zenity --list --title="Selecione os pacotes para instalar" --text="Escolha os pacotes que deseja instalar:" --checklist --column="Selecionar" --column="Pacote" \
